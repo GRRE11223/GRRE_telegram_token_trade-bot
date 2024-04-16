@@ -15,3 +15,20 @@ The bot can help emphasize how your project serves the specific needs of the cry
 Before you begin, ensure you have met the following requirements:
 - You have a modern version of Python installed (Python 3.7+ recommended).
 - You have a Telegram bot token from BotFather.
+
+
+Contributing to BVT Tradebot
+To contribute to BVT Tradebot, follow these steps:
+
+Fork this repository.
+Create a branch: git checkout -b <branch_name>.
+Make your changes and commit them: git commit -m '<commit_message>'
+Push to the original branch: git push origin GRRE_telegram_token_trade-bot/main
+Create the pull request.
+
+Alternatively, see the GitHub documentation on creating a pull request.
+For more comprehensive instructions on creating and managing pull requests, please see the GitHub documentation on creating a pull request：
+https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request
+
+Contact
+If you want to contact me you can reach me at rr1122311223@gmail.com.
