@@ -1,0 +1,138 @@
+# pip3 install selenium
+# pip3 install python-telegram-bot
+# pip3 install 'python-telegram-bot[job-queue]'
+# pip3 install nest_asyncio
+# pip3 install certifi
+
+
+
+import requests
+from datetime import datetime
+import pytz
+from telegram import InputMediaPhoto, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import Application, ContextTypes
+import aiohttp
+import certifi
+import ssl
+from telegram.ext import Application, CommandHandler, ContextTypes
+
+# 全局变量定义
+CHAT_ID = '@your_chatid'  
+Your_token = 
+
+def format_large_numbers(value):
+    value = float(value)
+    if value >= 1000000:
+        return f"{value / 1000000:.3f}m"
+    elif value >= 1000:
+        return f"{value / 1000:.3f}k"
+    else:
+        return f"{value:.3f}"
+
+async def fetch_market_data():
+    headers = {'Accept': 'application/json', 'Content-Type': 'application/json'}
+    query_params = {'currency_pair': 'BVT_USDT'}
+    host = "https://api.gateio.ws"
+    prefix = "/api/v4"
+
+    # Create an SSLContext object
+    ssl_context = ssl.create_default_context(cafile=certifi.where())
+
+    async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=ssl_context)) as session:
+        async with session.get(f"{host}{prefix}/spot/tickers", headers=headers, params=query_params) as response:
+            data = await response.json()
+
+    # Current time in PST
+    pst = pytz.timezone('America/Los_Angeles')
+    current_time = datetime.now(pytz.utc).astimezone(pst).strftime('%Y-%m-%d %H:%M:%S')
+
+    # Define key mapping with HTML formatting for bold
+    key_mapping = {
+        "currency_pair": "<b>            ✨✨</b>",
+        "last": "<b>🔘 最新价格 💰 : </b>",
+        "lowest_ask": "<b>🔘 最低卖价 ⬇️ : </b>",
+        "highest_bid": "<b>🔘 最高买价 ⬆️ : </b>",
+        "change_percentage": "<b>🔘 价格变化百分比 📈 : </b>",
+        "base_volume": "<b>🔘 交易量 📊 : </b>",
+        "quote_volume": "<b>🔘 成交额 💱 : </b>",
+        "high_24h": "<b>🔘 24小时最高价 ⏫ : </b>",
+        "low_24h": "<b>🔘 24小时最低价 ⏬ : </b>"
+    }
+
+    # Prepare the message text with HTML formatting
+    message_text = f"<i>Current PST Time: {current_time}</i>\n"
+    for item in data:
+        for key, value in item.items():
+            new_key = key_mapping.get(key, key)
+            if key in ["base_volume", "quote_volume"]:
+                value = format_large_numbers(value)
+            if key == "change_percentage":
+                change_percentage = float(value)
+                emoji = "⥣+" if change_percentage >= 0 else "⥥-"
+                value = f"{emoji} {abs(change_percentage):.2f}%"
+            if key == "currency_pair":
+                value = f"<b>{value}✨✨</b>"
+            message_text += f"{new_key}{value}\n"
+
+    return message_text
+
+
+
+async def scheduled_task(context: ContextTypes.DEFAULT_TYPE):
+
+    # Send an image before any text
+    image_url = "**********"  # Replace with your actual image URL
+    await context.bot.send_photo(chat_id=CHAT_ID, photo=image_url)
+
+    # Fetch the market data and send the first message
+    message_text = await fetch_market_data()
+    await context.bot.send_message(chat_id=CHAT_ID, text=message_text, parse_mode='HTML')
+
+    # Send the second message with the inline keyboard for the first URL
+    keyboard1 = [[InlineKeyboardButton("Trade BVT on Gate.io", url="https://www.gate.io/zh/trade/BVT_USDT")]]
+    reply_markup1 = InlineKeyboardMarkup(keyboard1)
+    await context.bot.send_message(chat_id=CHAT_ID, text="🚀 Check out on Gate.io 🚀", reply_markup=reply_markup1)
+
+    # Send the third message with the inline keyboard for the second URL
+    keyboard2 = [[InlineKeyboardButton("Participate Discussion by #BVT#", url="https://www.gate.io/zh/post/topic?q=BVT")]]
+    reply_markup2 = InlineKeyboardMarkup(keyboard2)
+    await context.bot.send_message(chat_id=CHAT_ID, text="🥳#BVT# Posts🥳", reply_markup=reply_markup2)
+
+
+# Define a command handler function for the /start command
+async def start_command(update, context: ContextTypes.DEFAULT_TYPE):
+    # Check if the job already exists
+    jobs = context.application.job_queue.get_jobs_by_name('send_message_job')
+    if not jobs:  # If the job does not exist, start it
+        # Schedule the task to run every two hours
+        context.application.job_queue.run_repeating(scheduled_task, interval=120*60, first=0, name='send_message_job')
+        await context.bot.send_message(chat_id=update.effective_chat.id, text='Repeating messages have been started.')
+    else:
+        # Inform the user that the job is already running
+        await context.bot.send_message(chat_id=update.effective_chat.id, text='Repeating messages are already active.')
+
+
+# Define a command handler function for the /stop command
+async def stop_command(update, context: ContextTypes.DEFAULT_TYPE):
+    # Attempt to retrieve the job by its name
+    job = context.application.job_queue.get_jobs_by_name('send_message_job')
+    if job:  # If the job exists
+        job[0].schedule_removal()  # Remove the scheduled job
+        await context.bot.send_message(chat_id=update.effective_chat.id, text='Repeating messages have been stopped.')
+    else:
+        await context.bot.send_message(chat_id=update.effective_chat.id, text='No active repeating messages to stop.')
+
+# Set up your Telegram bot by replace Your_token
+if __name__ == '__main__':
+    application = Application.builder().token('Your_token').build()
+    job_queue = application.job_queue
+
+    # Schedule the task to run every two hours and name the job
+    job_queue.run_repeating(scheduled_task, interval=120*60, first=0, name='send_message_job')
+
+    # Add command handlers
+    application.add_handler(CommandHandler('start', start_command))
+    application.add_handler(CommandHandler('stop', stop_command))
+
+    # Run the bot
+    application.run_polling()
