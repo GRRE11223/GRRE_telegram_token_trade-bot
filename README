@@ -1,4 +1,4 @@
-# Tradebot
+## Tradebot
 
 This project, Tradebot, is a Telegram bot designed to fetch and display cryptocurrency trading data from the Gate.io API. 
 It provides real-time updates on various trading metrics like price changes, volume, and more, formatted beautifully and sent directly to a Telegram channel.
