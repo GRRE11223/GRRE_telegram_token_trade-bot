@@ -1,6 +1,6 @@
-# BVT Tradebot
+# Tradebot
 
-This project, BVT Tradebot, is a Telegram bot designed to fetch and display cryptocurrency trading data from the Gate.io API. 
+This project, Tradebot, is a Telegram bot designed to fetch and display cryptocurrency trading data from the Gate.io API. 
 It provides real-time updates on various trading metrics like price changes, volume, and more, formatted beautifully and sent directly to a Telegram channel.
 The bot can help emphasize how your project serves the specific needs of the cryptocurrency market, providing timely insights into market dynamics, and supporting data-driven decision-making processes, which are crucial in the fields of cryptocurrency marketing and trading.
 
@@ -17,8 +17,8 @@ Before you begin, ensure you have met the following requirements:
 - You have a Telegram bot token from BotFather.
 
 
-Contributing to BVT Tradebot
-To contribute to BVT Tradebot, follow these steps:
+Contributing to Tradebot
+To contribute to Tradebot, follow these steps:
 
 Fork this repository.
 Create a branch: git checkout -b <branch_name>.
